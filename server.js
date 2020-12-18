@@ -1,9 +1,46 @@
-const { movies } = require('./movies.js')
-
 const express = require('express');
+const MongoClient = require('mongodb').MongoClient;
 const bodyParser = require('body-parser');
 
+let movies = [];
+
+// database setup
+const dbUrl = 'mongodb://localhost:27017';
+const dbName = 'movies';
+let db;
+MongoClient.connect(dbUrl, (err, client) => {
+     if(err != null) {
+         console.log('Connected to the database');
+     } else {
+         console.log(err);
+     }
+     db = client.db(dbName);
+    insertDocument(db, function() {
+        findDocuments(db, function() {
+            client.close();
+        });
+    });
+});
+
+function insertDocument(db, callback) {
+    const collection = db.collection('movies');
+    collection.insertOne({title: 'test'}, (err, result) => {
+        callback(result);
+    });
+}
+
+function findDocuments(db, callback) {
+    const collection = db.collection('movies');
+    collection.find({}).toArray((err, docs) => {
+        movies = docs;
+        callback(docs);
+    })
+}
+
+
+
 const server = express();
+const port = 3000;
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({extended: true}));
 
@@ -28,6 +65,6 @@ server.get('/api/movies/all', (req, res) => {
     res.json(movies);
 });
 
-server.listen(3000, () => {
-    console.log('Listening on port 3000');
+server.listen(port, () => {
+    console.log(`Listening on port ${port}`);
 });

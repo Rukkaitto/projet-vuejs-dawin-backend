@@ -2,6 +2,7 @@ const { movies } = require('./movies.js')
 const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 // database setup
 const dbUrl = 'mongodb://localhost:27017';
@@ -43,6 +44,7 @@ server.use((req, res, next) => {
 
     next();
 });
+server.use(cors({ origin: true, credentials: true }));
 
 server.get('/api/movies/all', (req, res) => {
     res.json(movies);

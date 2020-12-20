@@ -1,27 +1,14 @@
 const { movies } = require('./movies.js')
 const express = require('express');
+const ObjectId = require('mongodb').ObjectID;
 const MongoClient = require('mongodb').MongoClient;
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
 // database setup
-const dbUrl = 'mongodb://localhost:27017';
+const dbUrl = 'mongodb://mongo:27017';
 const dbName = 'movies';
-
-function insertDocument(db, callback) {
-    const collection = db.collection('movies');
-    collection.insertOne({title: 'test'}, (err, result) => {
-        callback(result);
-    });
-}
-
-function findDocuments(db, callback) {
-    const collection = db.collection('movies');
-    collection.find({}).toArray((err, docs) => {
-        movies = docs;
-        callback(docs);
-    })
-}
+const moviesCollection = 'movies';
 
 const server = express();
 const port = 3000;
@@ -44,11 +31,74 @@ server.use((req, res, next) => {
 
     next();
 });
+// Cors middleware
 server.use(cors({ origin: true, credentials: true }));
 
-server.get('/api/movies/all', (req, res) => {
-    res.json(movies);
-});
+MongoClient.connect(dbUrl, { useUnifiedTopology: true })
+    .then(client => {
+        console.log('Connected to Database')
+        const db = client.db(dbName);
+
+        // Get all movies
+        server.get('/api/movies/all', (req, res) => {
+            db.collection(moviesCollection).find().toArray()
+                .then(results => {
+                    res.json(results);
+                })
+                .catch(error => console.log(error));
+        });
+
+        // Create a movie
+        server.post('/api/movies', (req, res) => {
+            db.collection(moviesCollection).insertOne(
+                {
+                    title: req.body.title,
+                    language: req.body.language,
+                    producer: {
+                        name: req.body.producerName,
+                        nationality: req.body.producerNationality,
+                        birthDate: req.body.producerBirthDate,
+                    },
+                    genre: req.body.genre,
+                    rating: req.body.rating,
+                    posterUrl: req.body.posterUrl,
+                }
+            )
+                .then(results => {
+                    res.json({message: "Inserted movie into database successfully"});
+                })
+                .catch(error => console.log(error));
+        });
+
+        // Update a movie
+        server.put('/api/movies/:id', (req, res) => {
+            db.collection(moviesCollection).findOneAndUpdate(
+                {_id : ObjectId(req.params.id)},
+                {
+                    $set: {
+                        title: req.body.title,
+                    }
+                },
+            )
+                .then(results => {
+                    res.json({message: "Updated movie successfully"});
+                })
+                .catch(error => console.log(error));
+        });
+
+        // Delete a movie
+        server.delete('/api/movies/:id', (req, res) => {
+           db.collection(moviesCollection).findOneAndDelete(
+               {_id : ObjectId(req.params.id)},
+           )
+               .then(results => {
+                   res.json({message: "Deleted movie successfully"});
+               })
+               .catch(error => console.log(error));
+        });
+    })
+    .catch(error => console.error(error))
+
 
 server.listen(port, () => {
     console.log(`Listening on port ${port}`);

@@ -48,6 +48,17 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
                 .catch(error => console.log(error));
         });
 
+        // Get movie from id
+        server.get('/api/movies/:id', (req, res) => {
+            db.collection(moviesCollection).findOne(
+                {_id: ObjectId(req.params.id)},
+            )
+                .then(results => {
+                    res.json(results)
+                })
+                .catch(error => console.log(error));
+        })
+
         // Create a movie
         server.post('/api/movies', (req, res) => {
             db.collection(moviesCollection).insertOne(
@@ -77,6 +88,15 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
                 {
                     $set: {
                         title: req.body.title,
+                        language: req.body.language,
+                        producer: {
+                            name: req.body.producerName,
+                            nationality: req.body.producerNationality,
+                            birthDate: req.body.producerBirthDate,
+                        },
+                        genre: req.body.genre,
+                        rating: req.body.rating,
+                        posterUrl: req.body.posterUrl,
                     }
                 },
             )

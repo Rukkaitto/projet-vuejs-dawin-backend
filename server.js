@@ -64,6 +64,7 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
             db.collection(moviesCollection).insertOne(
                 {
                     title: req.body.title,
+                    year: req.body.year,
                     language: req.body.language,
                     producer: {
                         name: req.body.producer.name,
@@ -88,6 +89,7 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
                 {
                     $set: {
                         title: req.body.title,
+                        year: req.body.year,
                         language: req.body.language,
                         producer: {
                             name: req.body.producer.name,

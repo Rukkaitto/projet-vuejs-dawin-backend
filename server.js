@@ -43,10 +43,11 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
     .then(client => {
         console.log('Connected to Database')
         const db = client.db(dbName);
+        const byTitle = {title: 1}
 
         // Get all movies
         server.get('/api/movies/all', (req, res) => {
-            db.collection(moviesCollection).find().toArray()
+            db.collection(moviesCollection).find().sort(byTitle).toArray()
                 .then(results => {
                     res.json(results);
                 })

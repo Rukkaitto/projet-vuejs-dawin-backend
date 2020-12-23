@@ -4,6 +4,9 @@ const ObjectId = require('mongodb').ObjectID;
 const MongoClient = require('mongodb').MongoClient;
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const multer = require('multer');
+const path = require("path");
+
 
 // database setup
 const dbUrl = 'mongodb://mongo:27017';
@@ -14,6 +17,8 @@ const server = express();
 const port = 3000;
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({extended: true}));
+
+const upload = multer({dest: 'uploads/'})
 
 // Logging middleware
 server.use((req, res, next) => {
@@ -66,10 +71,10 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
                     title: req.body.title,
                     year: req.body.year,
                     language: req.body.language,
-                    producer: {
-                        name: req.body.producer.name,
-                        nationality: req.body.producer.nationality,
-                        birthDate: req.body.producer.birthDate,
+                    director: {
+                        name: req.body.director.name,
+                        nationality: req.body.director.nationality,
+                        birthDate: req.body.director.birthDate,
                     },
                     genre: req.body.genre,
                     rating: req.body.rating,
@@ -91,10 +96,10 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
                         title: req.body.title,
                         year: req.body.year,
                         language: req.body.language,
-                        producer: {
-                            name: req.body.producer.name,
-                            nationality: req.body.producer.nationality,
-                            birthDate: req.body.producer.birthDate,
+                        director: {
+                            name: req.body.director.name,
+                            nationality: req.body.director.nationality,
+                            birthDate: req.body.director.birthDate,
                         },
                         genre: req.body.genre,
                         rating: req.body.rating,
@@ -118,6 +123,21 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
                })
                .catch(error => console.log(error));
         });
+
+        // Upload a poster
+        server.post('/upload', upload.single('poster'), function (req, res, next) {
+            // req.file is the `avatar` file
+            // req.body will hold the text fields, if there were any
+            res.json({posterUrl: req.file.path});
+        })
+
+        // Get an image
+        server.get('/uploads/:filename', (req, res) => {
+            var options = {
+                root: path.join(__dirname)
+            };
+            res.sendFile('/uploads/' + req.params.filename, options);
+        })
     })
     .catch(error => console.error(error))
 

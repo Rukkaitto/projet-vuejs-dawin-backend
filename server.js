@@ -114,6 +114,23 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
                 .catch(error => console.log(error));
         });
 
+        // Rate a movie
+        server.put('/api/movies/:id/rate', (req, res) => {
+            console.log(req.body.rating);
+           db.collection(moviesCollection).findOneAndUpdate(
+               {_id : ObjectId(req.params.id)},
+               {
+                   $set: {
+                       rating: req.body.rating,
+                   }
+               }
+           )
+               .then(results => {
+                   res.json({message: "Rated movie successfully"});
+               })
+               .catch(error => console.log(error));
+        });
+
         // Delete a movie
         server.delete('/api/movies/:id', (req, res) => {
            db.collection(moviesCollection).findOneAndDelete(

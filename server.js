@@ -1,4 +1,3 @@
-const { movies } = require('./movies.js')
 const express = require('express');
 const ObjectId = require('mongodb').ObjectID;
 const MongoClient = require('mongodb').MongoClient;
@@ -8,16 +7,18 @@ const multer = require('multer');
 const path = require("path");
 
 
-// database setup
+// Database setup
 const dbUrl = 'mongodb://mongo:27017';
 const dbName = 'movies';
 const moviesCollection = 'movies';
 
+// Server setup
 const server = express();
 const port = 3000;
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({extended: true}));
 
+// Image upload folder destination
 const upload = multer({dest: 'uploads/'})
 
 // Logging middleware
@@ -36,13 +37,16 @@ server.use((req, res, next) => {
 
     next();
 });
+
 // Cors middleware
 server.use(cors({ origin: true, credentials: true }));
 
+// Connects to mongo database
 MongoClient.connect(dbUrl, { useUnifiedTopology: true })
     .then(client => {
         console.log('Connected to Database')
         const db = client.db(dbName);
+        // Sort by title in ascending order
         const byTitle = {title: 1}
 
         // Get all movies
@@ -144,12 +148,10 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true })
 
         // Upload a poster
         server.post('/upload', upload.single('poster'), function (req, res, next) {
-            // req.file is the `avatar` file
-            // req.body will hold the text fields, if there were any
             res.json({posterUrl: req.file.path});
         })
 
-        // Get an image
+        // Get a poster image
         server.get('/uploads/:filename', (req, res) => {
             var options = {
                 root: path.join(__dirname)
